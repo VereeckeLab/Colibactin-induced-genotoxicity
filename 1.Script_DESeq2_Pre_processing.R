@@ -150,7 +150,7 @@ if (length(samples_to_remove != 0 )){
 ################################################################################
 ### Inspect samples ###
 # Variance Stabilizing transformation
-vsd <- vst(filtered_dds, blind = F)
+vsd <- vst(dds, blind = F)
 # extract the vst matris from the object
 vsd_mat <- assay(vsd)
 # compute pairwise correlation values
