@@ -146,6 +146,29 @@ if (length(samples_to_remove != 0 )){
 }
 
 ################################################################################
+<<<<<<< HEAD
+=======
+########### Quality Control
+################################################################################
+### Inspect samples ###
+# Variance Stabilizing transformation
+vsd <- vst(dds, blind = F)
+# extract the vst matris from the object
+vsd_mat <- assay(vsd)
+# compute pairwise correlation values
+vsd_cor <- cor(vsd_mat)
+
+# Heatmap
+pheatmap(vsd_cor)
+
+# PCA
+colnames(colData(dds))
+plotPCA(vsd, intgroup = "group") + theme_classic()
+
+
+
+################################################################################
+>>>>>>> a697595d6b61b0f6bc96eff1f28a6e1453ef8596
 ########### PRE-FILTERING (cpm or count based)
 ################################################################################
 # Get number of genes before filtering
