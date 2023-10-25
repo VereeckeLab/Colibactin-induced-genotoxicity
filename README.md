@@ -13,7 +13,7 @@ In this repository you can find all the code used for the Bulk RNA-seq data anal
 - 5.session_info.txt: Contains all packages used and their respective versions for the analysis.
 
 Notes:
-- To be able to run the provided R scripts you need the raw_counts.csv file provided on GEOXXXXXX and additional files found in the data folder.
+- To be able to run the provided R scripts you need the raw_counts.csv file provided on GSE241851 and additional files found in the data folder.
 
 # Citation
 TBA
