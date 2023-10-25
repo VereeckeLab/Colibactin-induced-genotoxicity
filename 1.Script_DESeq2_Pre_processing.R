@@ -78,7 +78,7 @@ column_sn_ordered <- sort(column_sn)
 index <- c()
 for (n in column_sn_ordered){index <- append(index,which(column_sn == n))}
 # Apply to the columnames and add first column
-ordered_count_mtx<- data_matrix[,index]
+ordered_count_mtx <- data_matrix[,index]
 ordered_count_mtx <- add_column(gene_col,ordered_count_mtx)
 # Convert to a data.frame
 ordered_count_mtx <- as.data.frame(ordered_count_mtx)
@@ -146,26 +146,6 @@ if (length(samples_to_remove != 0 )){
 }
 
 ################################################################################
-########### Quality Control
-################################################################################
-### Inspect samples ###
-# Variance Stabilizing transformation
-vsd <- vst(filtered_dds, blind = F)
-# extract the vst matris from the object
-vsd_mat <- assay(vsd)
-# compute pairwise correlation values
-vsd_cor <- cor(vsd_mat)
-
-# Heatmap
-pheatmap(vsd_cor)
-
-# PCA
-colnames(colData(dds))
-plotPCA(vsd, intgroup = "group") + theme_classic()
-
-
-
-################################################################################
 ########### PRE-FILTERING (cpm or count based)
 ################################################################################
 # Get number of genes before filtering
@@ -182,6 +162,24 @@ print(paste0("Genes Before Filtering: ",num_genes_nofilter," | Genes After Filte
 rm(num_genes_filter,num_genes_nofilter,keep)
 gc()
 
+
+################################################################################
+########### Quality Control
+################################################################################
+### Inspect samples ###
+# Variance Stabilizing transformation
+vsd <- vst(filtered_dds, blind = F)
+# extract the vst matris from the object
+vsd_mat <- assay(vsd)
+# compute pairwise correlation values
+vsd_cor <- cor(vsd_mat)
+
+# Heatmap
+pheatmap(vsd_cor)
+
+# PCA
+colnames(colData(dds))
+plotPCA(vsd, intgroup = "group") + theme_classic()
 
 ################################################################################
 ########### Save DESeq2 Object

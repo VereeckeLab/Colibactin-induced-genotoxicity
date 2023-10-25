@@ -37,7 +37,7 @@ filtered_dds <- readRDS("Data/DESeq2_object.rds")
 anno_file <- read_csv("Data/GRCm39_full_annotation.txt")
 
 # Set cutoffs
-prefilter_cutoff <- 1
+prefilter_cutoff <- 1 # Impoves gsea 10 original was 1
 sign_cutoff <- 0.05
 fc_cutoff <- 0
 
@@ -70,6 +70,7 @@ title = "11G5 TG vs Nissle 1917 TG (Epithelial)"
 subset_dds[["group"]] <- relevel(subset_dds[["group"]],ref = "E")
 # Perform pre-processing
 f_dds_DE <- DESeq(subset_dds)
+resultsNames(f_dds_DE)
 # Get expression results
 DE_result <- results(f_dds_DE,
                      contrast=c("group","A","E"),
@@ -172,7 +173,8 @@ save_all_DE_results(dds_DE = f_dds_DE,
 # Load shrunk results
 shrunk_results <- read_xlsx("Data/Results/AvsE_11G5_EPI_TGvsNISSLE_EPI_TG_GSEA_filtered.xlsx")
 # Generate ranked gene file
-ranks_lfc <- shrunk_results[order(shrunk_results$log2FoldChange,decreasing = T),c("Entrez_GSEA","log2FoldChange")]
+#ranks_lfc <- shrunk_results[order(shrunk_results$log2FoldChange,decreasing = T) & (shrunk_results$padj < 0.05) ,c("Entrez_GSEA","log2FoldChange")]
+ranks_lfc <- shrunk_results[order(shrunk_results$log2FoldChange,decreasing = T) ,c("Entrez_GSEA","log2FoldChange")]
 # If duplicate gene names present, average the values
 if( sum(duplicated(ranks_lfc$Entrez_GSEA)) > 0) {
   ranks_lfc <- aggregate(.~Entrez_GSEA, FUN = mean, data = ranks_lfc)
@@ -186,6 +188,7 @@ Mm.c2.all.v7.1.entrez <- readRDS("Data/Mm.c2.all.v7.1.entrez.rds")
 # Perform GSEA
 fgsea_results <- fgsea(Mm.c2.all.v7.1.entrez,
                        ranks_lfc_deframed)
+
 # Select pathways to show
 main_selection <- c("REACTOME_INTERLEUKIN_4_AND_INTERLEUKIN_13_SIGNALING",
                     "PID_IL23_PATHWAY",
