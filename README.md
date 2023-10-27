@@ -17,4 +17,4 @@ Notes:
 
 # Citation
 Manuscript: TBA
-10.5281/zenodo.10046233
+[![DOI](https://zenodo.org/badge/682061416.svg)](https://zenodo.org/doi/10.5281/zenodo.10046232)
