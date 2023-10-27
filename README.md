@@ -16,4 +16,5 @@ Notes:
 - To be able to run the provided R scripts you need the raw_counts.csv file provided on GSE241851 and additional files found in the data folder.
 
 # Citation
-TBA
+Manuscript: TBA
+10.5281/zenodo.10046233
