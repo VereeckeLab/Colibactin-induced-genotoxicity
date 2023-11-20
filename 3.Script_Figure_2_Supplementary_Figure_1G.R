@@ -173,7 +173,7 @@ save_all_DE_results(dds_DE = f_dds_DE,
 # Load shrunk results
 shrunk_results <- read_xlsx("Data/Results/AvsE_11G5_EPI_TGvsNISSLE_EPI_TG_GSEA_filtered.xlsx")
 # Generate ranked gene file
-#ranks_lfc <- shrunk_results[order(shrunk_results$log2FoldChange,decreasing = T) & (shrunk_results$padj < 0.05) ,c("Entrez_GSEA","log2FoldChange")]
+#ranks_lfc <- shrunk_results[order(shrunk_results$log2FoldChange,decreasing = T) & (shrunk_results$baseMean > 30) ,c("Entrez_GSEA","log2FoldChange")] # clean up useless results
 ranks_lfc <- shrunk_results[order(shrunk_results$log2FoldChange,decreasing = T) ,c("Entrez_GSEA","log2FoldChange")]
 # If duplicate gene names present, average the values
 if( sum(duplicated(ranks_lfc$Entrez_GSEA)) > 0) {
@@ -185,47 +185,115 @@ ranks_lfc_deframed <- deframe(ranks_lfc)
 
 # load msigdb data
 Mm.c2.all.v7.1.entrez <- readRDS("Data/Mm.c2.all.v7.1.entrez.rds")
+Mm.c5.bp.v7.1.entrez <- readRDS("Data/Mm.c5.bp.v7.1.entrez.rds")
+length(Mm.c2.all.v7.1.entrez)
+length(Mm.c5.bp.v7.1.entrez)
+
 # Perform GSEA
-fgsea_results <- fgsea(Mm.c2.all.v7.1.entrez,
+fgsea_results <- fgsea(c(Mm.c5.bp.v7.1.entrez,Mm.c2.all.v7.1.entrez),
                        ranks_lfc_deframed)
 
-# Select pathways to show
-main_selection <- c("REACTOME_INTERLEUKIN_4_AND_INTERLEUKIN_13_SIGNALING",
-                    "PID_IL23_PATHWAY",
-                    "REACTOME_COMPLEMENT_CASCADE",
+
+# Add column showing significance based on msigdb FAQ (padj < 0.25)
+fgsea_results$DE = FALSE
+fgsea_results[(fgsea_results$padj < 0.25) & (fgsea_results$NES > 1) ,"DE"] = TRUE
+# Convert and add leading edge as gene symbols
+for (row_idx in 1:nrow(fgsea_results)){
+    # fetch row
+    row = fgsea_results[row_idx,] 
+    # unlist leadingEdge Convert entrezID to symbols (mouse)
+    symbols = na.omit(select(org.Mm.eg.db, keys = unlist(row$leadingEdge), keytype = "ENTREZID", column = "SYMBOL"))
+    # Set to results
+    fgsea_results[row_idx,"leadingEdge"] = paste0(symbols$SYMBOL, collapse = ',')
+}
+fgsea_results$leadingEdge = as.character(fgsea_results$leadingEdge)
+
+# Save results
+#write_xlsx(fgsea_results,"Data/Results/A_E_GSEA.xlsx")
+
+
+main_selection <- c("GO_regulation_of_double-strand_break_repair_via_homologous_recombination",
+                    "GO_negative_regulation_of_DNA_repair",
+                    "REACTOME_CYP2E1_REACTIONS",
+                    "GO_positive_regulation_of_double-strand_break_repair",
+                    "GO_DNA_replication-dependent_nucleosome_assembly",
+                    "GO_DNA_replication-dependent_nucleosome_organization",
+                    "REACTOME_MEIOTIC_RECOMBINATION",
+                    "REACTOME_XENOBIOTICS",
+                    "REACTOME_GAP_JUNCTION_TRAFFICKING_AND_REGULATION",
+                    "SCIAN_INVERSED_TARGETS_OF_TP53_AND_TP73_UP",
+                    "GO_DNA_damage_response,_signal_transduction_resulting_in_transcription",
+                    "PID_E2F_PATHWAY",
+                    "GO_positive_regulation_of_double-strand_break_repair_via_nonhomologous_end_joining",
+                    "REACTOME_GAP_JUNCTION_TRAFFICKING_AND_REGULATION",
+                    "REN_BOUND_BY_E2F",
+                    "KANNAN_TP53_TARGETS_UP",
+                    "REACTOME_PRE_NOTCH_EXPRESSION_AND_PROCESSING",
+                    "REACTOME_OXIDATIVE_STRESS_INDUCED_SENESCENCE",
+                    "GO_xenobiotic_metabolic_process",
+                    "REACTOME_SIGNALING_BY_NOTCH",
+                    "GO_toxin_biosynthetic_process",
+                    "REACTOME_BIOLOGICAL_OXIDATIONS",
+                    "AIGNER_ZEB1_TARGETS",
+                    "REACTOME_O_LINKED_GLYCOSYLATION_OF_MUCINS",
+                    "PID_IL23_PATHWAY", # Start negative pathwyas
+                    "REACTOME_INTERLEUKIN_4_AND_INTERLEUKIN_13_SIGNALING",
+                    "GO_defense_response_to_bacterium",
+                    "REACTOME_CONSTITUTIVE_SIGNALING_BY_ABERRANT_PI3K_IN_CANCER",
                     "RUAN_RESPONSE_TO_TNF_UP",
                     "BIERIE_INFLAMMATORY_RESPONSE_TGFB1",
-                    "REACTOME_PD_1_SIGNALING",
-                    "REACTOME_PI3K_AKT_ACTIVATION",
-                    "REACTOME_SIGNALING_BY_NOTCH1",
-                    "KONG_E2F1_TARGETS",
-                    "REACTOME_DNA_REPAIR",
-                    "REACTOME_OXIDATIVE_STRESS_INDUCED_SENESCENCE",
-                    "KANNAN_TP53_TARGETS_UP",
-                    "KEGG_CELL_CYCLE",
-                    "REACTOME_GLUCOSE_METABOLISM",
-                    "AIGNER_ZEB1_TARGETS",
-                    "FARDIN_HYPOXIA_9",
-                    "COWLING_MYCN_TARGETS",
-                    "REACTOME_O_LINKED_GLYCOSYLATION_OF_MUCINS",
-                    "EINAV_INTERFERON_SIGNATURE_IN_CANCER",
-                    "KEGG_GLYCOLYSIS_GLUCONEOGENESIS",
-                    "REACTOME_DEFENSINS",
-                    "KIM_PTEN_TARGETS_UP")
-main_res <- fgsea_results[fgsea_results$pathway %in% main_selection,]
+                    "REACTOME_TNFS_BIND_THEIR_PHYSIOLOGICAL_RECEPTORS",
+                    "GO_regulation_of_cell_activation",
+                    "GO_response_to_bacterium",
+                    "GO_cellular_response_to_molecule_of_bacterial_origin",
+                    "GO_defense_response_to_bacterium",
+                    "GO_cell_adhesion",
+                    "GO_defense_response_to_Gram-negative_bacterium",
+                    "GO_immune_system_process",
+                    "GO_complement_activation",
+                    "GO_adaptive_immune_response",
+                    "GO_inflammatory_response"
+                    )
 
+# Select pathways to show
+#main_selection <- c("REACTOME_INTERLEUKIN_4_AND_INTERLEUKIN_13_SIGNALING",
+#                    "PID_IL23_PATHWAY",
+#                    "REACTOME_COMPLEMENT_CASCADE",
+#                    "RUAN_RESPONSE_TO_TNF_UP",
+#                    "BIERIE_INFLAMMATORY_RESPONSE_TGFB1",
+#                    "REACTOME_PD_1_SIGNALING",
+#                    "REACTOME_PI3K_AKT_ACTIVATION",
+#                    "REACTOME_SIGNALING_BY_NOTCH1",
+#                    "KONG_E2F1_TARGETS",
+#                    "REACTOME_DNA_REPAIR",
+#                    "REACTOME_OXIDATIVE_STRESS_INDUCED_SENESCENCE",
+#                    "KANNAN_TP53_TARGETS_UP",
+#                    "KEGG_CELL_CYCLE",
+#                    "REACTOME_GLUCOSE_METABOLISM",
+#                    "AIGNER_ZEB1_TARGETS",
+#                    "FARDIN_HYPOXIA_9",
+#                    "COWLING_MYCN_TARGETS",
+#                    "REACTOME_O_LINKED_GLYCOSYLATION_OF_MUCINS",
+#                    "EINAV_INTERFERON_SIGNATURE_IN_CANCER",
+#                    "KEGG_GLYCOLYSIS_GLUCONEOGENESIS",
+#                    "REACTOME_DEFENSINS",
+#                    "KIM_PTEN_TARGETS_UP")
+
+
+main_res <- fgsea_results[fgsea_results$pathway %in% main_selection,]
 # function for plotting
 g1 <- GSEA_plot(main_res,
           title = "",
           NES_cutoff = 0,
-          npathw = 40,
+          npathw = 100,
           color_down = "#6B92CB",
           color_up = "#ED6E68",
-          reverse_order = F,
-          y_text_size = 12)
+          reverse_order = FALSE,
+          y_text_size = 10) #12
 g1 <- g1 + theme(legend.position = "None")
+g1
 # Save Figure
-ggsave("Data/Figures/Epithelial_11G5_TG_vs_Nissle_TG_GSEA.png", units = "px", width = 915, height = 1000, dpi = 100, bg = "white", plot = g1)
+ggsave("Data/Figures/Epithelial_11G5_TG_vs_Nissle_TG_GSEA.png", units = "px", width = (915) * 1.7, height = 1400, dpi = 100, bg = "white", plot = g1)
 
 
 
@@ -343,9 +411,9 @@ res <- gsva_results[c("AIGNER_ZEB1_TARGETS",
                       "REACTOME_SIGNALING_BY_WNT"),]
 
 # add annotation column
-Tissue.names <- c("CCR20_1","CCR20_2","CCR20_3","CCR20_4","Nissle_1","Nissle_2","Nissle_3")
+Tissue.names <- c("11G5_1","11G5_2","11G5_3","11G5_4","Nissle_1","Nissle_2","Nissle_3")
 colnames(res) <- Tissue.names 
-Tissue <- c("CCR20","CCR20","CCR20","CCR20","Nissle 1917","Nissle 1917","Nissle 1917") 
+Tissue <- c("11G5","11G5","11G5","11G5","Nissle 1917","Nissle 1917","Nissle 1917") 
 anno_col <- data.frame(Tissue)
 anno_col$Tissue <- factor(anno_col$Tissue)
 rownames(anno_col) <- Tissue.names
@@ -370,7 +438,7 @@ pathway_heatmap <- pheatmap(res,
                             cutree_cols = 2,
                             cluster_cols = T,
                             #annotation_col = anno_col,
-                            #annotation_colors = list(Tissue = c(CCR20 = "#6ef88a", Nissle = "#d357fe")),
+                            #annotation_colors = list(Tissue = c(11G5 = "#6ef88a", Nissle = "#d357fe")),
                             #annotation_legend = F,
                             #annotation_names_col = F,
                             show_colnames = F, # Don't show sample labels
