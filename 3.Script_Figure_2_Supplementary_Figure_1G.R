@@ -194,19 +194,19 @@ fgsea_results <- fgsea(c(Mm.c5.bp.v7.1.entrez,Mm.c2.all.v7.1.entrez),
                        ranks_lfc_deframed)
 
 
-# Add column showing significance based on msigdb FAQ (padj < 0.25)
-fgsea_results$DE = FALSE
-fgsea_results[(fgsea_results$padj < 0.25) & (fgsea_results$NES > 1) ,"DE"] = TRUE
-# Convert and add leading edge as gene symbols
-for (row_idx in 1:nrow(fgsea_results)){
-    # fetch row
-    row = fgsea_results[row_idx,] 
-    # unlist leadingEdge Convert entrezID to symbols (mouse)
-    symbols = na.omit(select(org.Mm.eg.db, keys = unlist(row$leadingEdge), keytype = "ENTREZID", column = "SYMBOL"))
-    # Set to results
-    fgsea_results[row_idx,"leadingEdge"] = paste0(symbols$SYMBOL, collapse = ',')
-}
-fgsea_results$leadingEdge = as.character(fgsea_results$leadingEdge)
+## Add column showing significance based on msigdb FAQ (padj < 0.25)
+#fgsea_results$DE = FALSE
+#fgsea_results[(fgsea_results$padj < 0.25) & (fgsea_results$NES > 1) ,"DE"] = TRUE
+## Convert and add leading edge as gene symbols
+#for (row_idx in 1:nrow(fgsea_results)){
+#    # fetch row
+#    row = fgsea_results[row_idx,] 
+#    # unlist leadingEdge Convert entrezID to symbols (mouse)
+#    symbols = na.omit(select(org.Mm.eg.db, keys = unlist(row$leadingEdge), keytype = "ENTREZID", column = "SYMBOL"))
+#    # Set to results
+#    fgsea_results[row_idx,"leadingEdge"] = paste0(symbols$SYMBOL, collapse = ',')
+#}
+#fgsea_results$leadingEdge = as.character(fgsea_results$leadingEdge)
 
 # Save results
 #write_xlsx(fgsea_results,"Data/Results/A_E_GSEA.xlsx")
