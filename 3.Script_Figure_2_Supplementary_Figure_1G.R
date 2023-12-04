@@ -157,6 +157,7 @@ ggsave("Data/Figures/A_vs_E_Volcano.png",pl2, units = "px", width = 1644/3.25, h
 ########### GSEA barplot (Figure 2C)
 ################################################################################
 # DISCLAIMER: Keep in mind scores can change slightly when rerunning the analysis!
+# (https://github.com/ctlab/fgsea/issues/12)
 # Fetch shrunk results using ashr
 shrunk_DE_results <- lfcShrink(dds = f_dds_DE,
                             contrast=c("group","A","E"),
@@ -191,98 +192,64 @@ length(Mm.c5.bp.v7.1.entrez)
 
 # Perform GSEA
 fgsea_results <- fgsea(c(Mm.c5.bp.v7.1.entrez,Mm.c2.all.v7.1.entrez),
-                       ranks_lfc_deframed)
+                       ranks_lfc_deframed, nPermSimple = 1000) #nPermSimple = 1000 (DEFAULT)
 
 
-## Add column showing significance based on msigdb FAQ (padj < 0.25)
-#fgsea_results$DE = FALSE
-#fgsea_results[(fgsea_results$padj < 0.25) & (fgsea_results$NES > 1) ,"DE"] = TRUE
-## Convert and add leading edge as gene symbols
-#for (row_idx in 1:nrow(fgsea_results)){
-#    # fetch row
-#    row = fgsea_results[row_idx,] 
-#    # unlist leadingEdge Convert entrezID to symbols (mouse)
-#    symbols = na.omit(select(org.Mm.eg.db, keys = unlist(row$leadingEdge), keytype = "ENTREZID", column = "SYMBOL"))
-#    # Set to results
-#    fgsea_results[row_idx,"leadingEdge"] = paste0(symbols$SYMBOL, collapse = ',')
-#}
-#fgsea_results$leadingEdge = as.character(fgsea_results$leadingEdge)
+# Add column showing significance based on msigdb FAQ (padj < 0.25)
+fgsea_results$DE = FALSE
+fgsea_results[(fgsea_results$padj < 0.25) & (fgsea_results$NES > 1) ,"DE"] = TRUE
+# Convert and add leading edge as gene symbols
+for (row_idx in 1:nrow(fgsea_results)){
+    # fetch row
+    row = fgsea_results[row_idx,] 
+    # unlist leadingEdge Convert entrezID to symbols (mouse)
+    symbols = na.omit(select(org.Mm.eg.db, keys = unlist(row$leadingEdge), keytype = "ENTREZID", column = "SYMBOL"))
+    # Set to results
+    fgsea_results[row_idx,"leadingEdge"] = paste0(symbols$SYMBOL, collapse = ',')
+}
+fgsea_results$leadingEdge = as.character(fgsea_results$leadingEdge)
 
 # Save results
-#write_xlsx(fgsea_results,"Data/Results/A_E_GSEA.xlsx")
+#write_xlsx(fgsea_results,"Data/Results/A_E_GSEA.xlsx") # reload rsults for consistency figures
+fgsea_results = read_xlsx("/home/maartenc/Documents/GEO/Maude/Extra/important/A_E_GSEA_DE_MJ.xlsx")
 
-
-main_selection <- c("GO_regulation_of_double-strand_break_repair_via_homologous_recombination",
+# Select Significant pathways to show
+main_selection <- c("GO_negative_regulation_of_double-strand_break_repair",
                     "GO_negative_regulation_of_DNA_repair",
-                    "REACTOME_CYP2E1_REACTIONS",
-                    "GO_positive_regulation_of_double-strand_break_repair",
-                    "GO_DNA_replication-dependent_nucleosome_assembly",
-                    "GO_DNA_replication-dependent_nucleosome_organization",
-                    "REACTOME_MEIOTIC_RECOMBINATION",
-                    "REACTOME_XENOBIOTICS",
-                    "REACTOME_GAP_JUNCTION_TRAFFICKING_AND_REGULATION",
-                    "SCIAN_INVERSED_TARGETS_OF_TP53_AND_TP73_UP",
+                    "PID_P38_GAMMA_DELTA_PATHWAY",
+                    "GO_regulation_of_double-strand_break_repair_via_homologous_recombination",
                     "GO_DNA_damage_response,_signal_transduction_resulting_in_transcription",
+                    "REACTOME_GLUCONEOGENESIS",
                     "PID_E2F_PATHWAY",
                     "GO_positive_regulation_of_double-strand_break_repair_via_nonhomologous_end_joining",
-                    "REACTOME_GAP_JUNCTION_TRAFFICKING_AND_REGULATION",
-                    "REN_BOUND_BY_E2F",
                     "KANNAN_TP53_TARGETS_UP",
-                    "REACTOME_PRE_NOTCH_EXPRESSION_AND_PROCESSING",
                     "REACTOME_OXIDATIVE_STRESS_INDUCED_SENESCENCE",
-                    "GO_xenobiotic_metabolic_process",
+                    "FARDIN_HYPOXIA_9",
+                    "KOBAYASHI_EGFR_SIGNALING_24HR_UP",
+                    "REACTOME_FORMATION_OF_THE_BETA_CATENIN_TCF_TRANSACTIVATING_COMPLEX",
+                    "REACTOME_O_LINKED_GLYCOSYLATION",
                     "REACTOME_SIGNALING_BY_NOTCH",
-                    "GO_toxin_biosynthetic_process",
-                    "REACTOME_BIOLOGICAL_OXIDATIONS",
-                    "AIGNER_ZEB1_TARGETS",
-                    "REACTOME_O_LINKED_GLYCOSYLATION_OF_MUCINS",
-                    "PID_IL23_PATHWAY", # Start negative pathwyas
-                    "REACTOME_INTERLEUKIN_4_AND_INTERLEUKIN_13_SIGNALING",
-                    "GO_defense_response_to_bacterium",
-                    "REACTOME_CONSTITUTIVE_SIGNALING_BY_ABERRANT_PI3K_IN_CANCER",
-                    "RUAN_RESPONSE_TO_TNF_UP",
-                    "BIERIE_INFLAMMATORY_RESPONSE_TGFB1",
-                    "REACTOME_TNFS_BIND_THEIR_PHYSIOLOGICAL_RECEPTORS",
-                    "GO_regulation_of_cell_activation",
+                    "GO_regulation_of_cell_growth_by_extracellular_stimulus", 
+                    "GO_actin_cytoskeleton_reorganization",
+                    "GO_lipopolysaccharide-mediated_signaling_pathway",
+                    "PID_IL23_PATHWAY",
                     "GO_response_to_bacterium",
-                    "GO_cellular_response_to_molecule_of_bacterial_origin",
-                    "GO_defense_response_to_bacterium",
-                    "GO_cell_adhesion",
-                    "GO_defense_response_to_Gram-negative_bacterium",
-                    "GO_immune_system_process",
-                    "GO_complement_activation",
-                    "GO_adaptive_immune_response",
-                    "GO_inflammatory_response"
+                    "GO_regulation_of_phagocytosis",
+                    "GO_interleukin-10_production",
+                    "KEGG_CELL_ADHESION_MOLECULES_CAMS",
+                    "REACTOME_CD28_DEPENDENT_PI3K_AKT_SIGNALING",
+                    "GO_interleukin-17_production",
+                    "GO_interleukin-4_production",
+                    "RUAN_RESPONSE_TO_TNF_UP",
+                    "GO_positive_regulation_of_cell-cell_adhesion",
+                    "GO_negative_regulation_of_toll-like_receptor_4_signaling_pathway",
+                    "BIERIE_INFLAMMATORY_RESPONSE_TGFB1"
                     )
 
-# Select pathways to show
-#main_selection <- c("REACTOME_INTERLEUKIN_4_AND_INTERLEUKIN_13_SIGNALING",
-#                    "PID_IL23_PATHWAY",
-#                    "REACTOME_COMPLEMENT_CASCADE",
-#                    "RUAN_RESPONSE_TO_TNF_UP",
-#                    "BIERIE_INFLAMMATORY_RESPONSE_TGFB1",
-#                    "REACTOME_PD_1_SIGNALING",
-#                    "REACTOME_PI3K_AKT_ACTIVATION",
-#                    "REACTOME_SIGNALING_BY_NOTCH1",
-#                    "KONG_E2F1_TARGETS",
-#                    "REACTOME_DNA_REPAIR",
-#                    "REACTOME_OXIDATIVE_STRESS_INDUCED_SENESCENCE",
-#                    "KANNAN_TP53_TARGETS_UP",
-#                    "KEGG_CELL_CYCLE",
-#                    "REACTOME_GLUCOSE_METABOLISM",
-#                    "AIGNER_ZEB1_TARGETS",
-#                    "FARDIN_HYPOXIA_9",
-#                    "COWLING_MYCN_TARGETS",
-#                    "REACTOME_O_LINKED_GLYCOSYLATION_OF_MUCINS",
-#                    "EINAV_INTERFERON_SIGNATURE_IN_CANCER",
-#                    "KEGG_GLYCOLYSIS_GLUCONEOGENESIS",
-#                    "REACTOME_DEFENSINS",
-#                    "KIM_PTEN_TARGETS_UP")
-
-
-main_res <- fgsea_results[fgsea_results$pathway %in% main_selection,]
+fgsea_results <- fgsea_results[fgsea_results$pathway %in% main_selection,]
+view(fgsea_results)
 # function for plotting
-g1 <- GSEA_plot(main_res,
+g1 <- GSEA_plot(fgsea_results,
           title = "",
           NES_cutoff = 0,
           npathw = 100,
@@ -296,8 +263,7 @@ g1
 ggsave("Data/Figures/Epithelial_11G5_TG_vs_Nissle_TG_GSEA.png", units = "px", width = (915) * 1.7, height = 1400, dpi = 100, bg = "white", plot = g1)
 
 
-
-################################################################################
+###############################################################################
 ########### GSEA enrichment plot using genekitr (Figure 2D)
 ################################################################################
 # 1st step: prepare pre-ranked gene list and genekitr files

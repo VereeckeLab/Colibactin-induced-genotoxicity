@@ -150,7 +150,7 @@ get_paper_volcano_plot <- function(result_table = results,
 # GSEA plots
 GSEA_plot <- function (fgsea_results,
                        NES_cutoff = 1.5,
-                       npathw = 20,
+                       npathw = 1000,
                        color_down = "#00FFFF",
                        color_up = "#ff1493",
                        title = "No title",
@@ -165,6 +165,7 @@ GSEA_plot <- function (fgsea_results,
   fgsea_results$short_name <- str_replace_all(fgsea_results$short_name,"^REGULATION OF ","")
   fgsea_results$short_name <- str_replace_all(fgsea_results$short_name," UP$","")
   fgsea_results$short_name <- str_replace_all(fgsea_results$short_name," DN$","")
+    fgsea_results$short_name <- str_replace_all(fgsea_results$short_name," 24HR$","")
   print(fgsea_results$short_name)
   fgsea_results <- mutate(fgsea_results, Regulated = case_when(NES > 0 ~ "Up-regulated",
                                                                NES < 0 ~ "Down-regulated",
@@ -198,7 +199,7 @@ GSEA_plot <- function (fgsea_results,
     geom_bar(stat= "identity", aes(fill = Regulated))+
     scale_fill_manual(values=c(color_down, color_up)) +
     coord_flip() +
-    scale_y_continuous(limits = c(-2, 2)) +
+    scale_y_continuous(limits = c(-2, 2.3)) +
     geom_hline(yintercept = 0) +
     labs(x = "", y = "Normalized Enrichment Score")+
     theme(text = element_text(family = "Calibri",color = "black"),
