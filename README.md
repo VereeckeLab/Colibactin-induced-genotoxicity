@@ -18,6 +18,7 @@ Notes:
 # Citation
 
 Published Manuscript: [Colibactin-driven colon cancer requires adhesin-mediated epithelial binding](https://doi.org/10.1038/s41586-024-08135-z)
+
 Preprint Manuscript: [![DOI:10.1101/2023.08.16.553526](http://img.shields.io/badge/DOI-10.1101/2023.08.16.553526-B31B1B.svg)](https://www.biorxiv.org/content/10.1101/2023.08.16.553526v1)
 
 Code: [![DOI](https://zenodo.org/badge/682061416.svg)](https://zenodo.org/doi/10.5281/zenodo.10046232)
